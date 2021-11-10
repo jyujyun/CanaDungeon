@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="icon" type="image/png" href="rod.png">
+        <title>かなダンジョン</title>
+        <style>
+            .tiles {line-height: 0px;}
+            .doc {line-height: 100%;}
+        </style>
+    </head>
+    <body onload="init()" onkeydown="ki_n(event)">
+        <div class="tiles" id="ryouiki" style="position:absolute;left:0px;top:0px;"></div>
+        <img src="kaidan.png" id="kaidan" style="position:absolute;left:32px;top:32px;">
+        <img src="fox.png" id="teki1" style="position:absolute;left:32px;top:32px;">
+        <img src="slime.png" id="teki2" style="position:absolute;left:32px;top:32px;">
+        <img src="m1.png" id="player" style="position:absolute;left:32px;top:32px;">
+        <img src="serruria.png" id="npc" style="position:absolute;left:0px;top:0px;">
+        <div id="ui" style="position:absolute;left:332px;top:0px;">
+        そうび<br>
+        <table border="1">
+            <tr><td width="32" height="32"><img id="ken_img" onclick="select_item(32)"></td><td width="32" height="32"><img id="tate_img" onclick="select_item(33)"></td> <td width="32" height="32"><img id="kouka_img"></td></tr>
+        </table>
+        アイテム<br>
+        <table border="1">
+            <tr><td width="32" height="32"><img id="i1" onclick="select_item(0)"></td><td width="32" height="32"><img id="i2" onclick="select_item(1)"></td><td width="32" height="32"><img id="i3" onclick="select_item(2)"></td><td width="32" height="32"><img id="i4" onclick="select_item(3)"></td></tr>
+            <tr><td width="32" height="32"><img id="i5" onclick="select_item(4)"></td><td width="32" height="32"><img id="i6" onclick="select_item(5)"></td><td width="32" height="32"><img id="i7" onclick="select_item(6)"></td><td width="32" height="32"><img id="i8" onclick="select_item(7)"></td></tr>
+        </table>
+        <br>
+        <div id="item_d">アイテムを選んでください<br></div>
+        <button onclick="use_item()">つかう</button><button onclick="delete_item()">すてる</button>
+        <div id = "hp_i">たいりょく:50/50</div>
+        <div id = "score_i">スコア:0</div>
+        <span id = "fc">0階</span>
+        <span id = "hosi"><img src="star.png">x0</span><br>
+        <label><input type="checkbox" id="key_hantei" checked>キー入力を受け付ける</label>
+        </div>
+        <div style="position:absolute;left:0px;top:332px;"><table><tr><td></td><td><button onclick="move(1)">↑</button></td><td></td></tr>
+        <tr><td><button onclick="move(0)">←</button></td><td><button onclick="kougeki()">o</button></td><td><button onclick="move(2)">→</button></td></tr>
+        <tr><td></td><td><button onclick="move(3)">↓</button></td><td></td></tr>
+        </table></div>
+        <div style="position:absolute;left:100px;top:332px;" id="msg">わお</div>
+    </body>
+    <script>
+        //かなダンジョン by jyujyun
+        //0 ゆか
+        //1 かべ
+        //2 たからばこ
+        //4 XかいだんX
+        //5 てき1
+        //3 プレイヤー
+        //6 てき2
+        //7 てき3
+        //12 NPC
+        //13 かんばん
+        //14 権利情報
+        var x = 1;
+        var y = 1;
+        var c = 0;
+        var on_move = false;
+        var mm;
+        var map0 = new Array(9);
+        var map1 = new Array(9);
+        var map2 = new Array(9);
+        var map3 = new Array(9);
+        var map4 = new Array(9);
+        var map5 = new Array(9);
+        var map6 = new Array(9);
+        var map7 = new Array(9);
+        var map8 = new Array(9);
+        var map9= new Array(9);
+        var e1 = new Array(6);
+        var e2 = new Array(6);
+        var mukou = false;
+        var item = new Array(8);
+        var hp = 100;
+        var flag = 0;
+        var st = new Array(1);
+        var msg_q;
+        var score;
+        var item_f;
+        var floor_c;
+        var max_hp;
+        var ken;
+        var tate;
+        var npc_i = new Array(3);
+        var hosikuzu;
+        var kouka;
+        kouka = 0;
+        hosikuzu = 0;
+        score = 0;
+        function init(){
+            for (i = 0;i<10; i++) {
+                for (j = 0;j<11; j++) {
+                    in_map(i,j,1);
+                }
+            }
+            for (i = 1;i<9; i++) {
+                for (j = 1;j<9; j++) {
+                    if (Math.floor(Math.random()*10) == 0){
+                        in_map(i,j,1);
+                    }else if(Math.floor(Math.random()*50) == 0){
+                        in_map(i,j,2);
+                    }else if(Math.floor(Math.random()*30) == 0){
+                        if (kouka == 1){
+                            in_map(i,j,2);
+                        }
+                    }else{
+                        in_map(i,j,0);
+                    }
+                    
+                    
+                }
+            }
+            x = Math.floor(Math.random() * 7) + 1;
+            y = Math.floor(Math.random() * 7) + 1;
+            document.getElementById("player").style.left = x * 32 + "px";
+            document.getElementById("player").style.top = y * 32 + "px";
+            in_map(x,y,3);
+            e1[0] = Math.floor(Math.random() * 7) + 1;
+            e1[1] = Math.floor(Math.random() * 7) + 1;
+            e1[3] = 10 + Math.floor(floor_c / 2);
+            e1[4] = 1;
+            document.getElementById("teki1").style.left = e1[0] * 32 + "px";
+            document.getElementById("teki1").style.top = e1[1] * 32 + "px";
+            in_map(e1[0],e1[1],5);
+
+            if (Math.floor(Math.random() * 2) == 0){
+                e2[0] = Math.floor(Math.random() * 7) + 1;
+                e2[1] = Math.floor(Math.random() * 7) + 1;
+                e2[3] = 10 + Math.floor(floor_c / 2);
+                e2[4] = 1;
+                document.getElementById("teki2").style.left = e2[0] * 32 + "px";
+                document.getElementById("teki2").style.top = e2[1] * 32 + "px";
+                in_map(e2[0],e2[1],6);
+            }else{
+                e2[2] = 4;
+                e2[4] = 0;
+                in_map(e2[0],e2[1],0);
+                e2[0] = -4;
+                e2[1] = -4;
+
+                document.getElementById("teki2").style.left = -96 + "px";
+                document.getElementById("teki2").style.top = -96 + "px";
+            }
+
+
+
+            st[0] = Math.floor(Math.random() * 7) + 1;
+            st[1] = Math.floor(Math.random() * 7) + 1;
+            document.getElementById("kaidan").style.left = st[0] * 32 + "px";
+            document.getElementById("kaidan").style.top = st[1] * 32 + "px";
+            in_map(st[0],st[1],0);
+            msg_q = "";
+            npc_i[0] = -4;
+            npc_i[1] = -4;
+            document.getElementById("npc").style.left = npc_i[0] * 32 + "px";
+            document.getElementById("npc").style.top = npc_i[1] * 32 + "px";
+            var tmp;
+            tmp = Math.floor(Math.random() * 4);
+            if (tmp == 0){
+                document.getElementById("teki1").src = "slime.png";
+                e1[5] = 0;
+            }else if(tmp == 1){
+                document.getElementById("teki1").src = "slime.png";
+                e1[5] = 0;
+            }else if(tmp == 2){
+                document.getElementById("teki1").src = "mushroom.png";
+                e1[5] = 2;
+            }else if(tmp == 3){
+                document.getElementById("teki1").src = "tree.png";
+                e1[5] = 3;
+            }
+            tmp = Math.floor(Math.random() * 4);
+            if (tmp == 0){
+                document.getElementById("teki2").src = "slime.png";
+                e2[5] = 0;
+            }else if(tmp == 1){
+                document.getElementById("teki2").src = "fox.png";
+                e2[5] = 1;
+            }else if(tmp == 2){
+                document.getElementById("teki2").src = "mushroom.png";
+                e2[5] = 2;
+            }else if(tmp == 3){
+                document.getElementById("teki2").src = "tree.png";
+                e2[5] = 3;
+            }
+
+            floor_c += 1;
+            if (flag == 0){
+                kouka = 0;
+                ken = 0;
+                tate = 0;
+                document.getElementById("msg").innerHTML = "";
+                floor_c = 0;
+                hp = 50;
+                max_hp = 50;
+                for (i = 0;i < 8; i++){
+                    item[i] = 0;
+                    
+                    
+                }
+                for (i = 1;i<9; i++) {
+                    for (j = 1;j<9; j++) {
+                        in_map(i,j,0)
+                    } 
+                }
+                flag = 1;
+                score = 0;
+                item_f = 64;
+                e1[2] = 4;
+                e1[4] = 0;
+                in_map(e1[0],e1[1],0);
+                e1[0] = -4;
+                e1[1] = -4;
+                e2[2] = 4;
+                e2[4] = 0;
+                in_map(e2[0],e2[1],0);
+                e2[0] = -4;
+                e2[1] = -4;
+
+                document.getElementById("teki1").style.left = -96 + "px";
+                document.getElementById("teki1").style.top = -96 + "px";
+                document.getElementById("teki2").style.left = -96 + "px";
+                document.getElementById("teki2").style.top = -96 + "px";
+                st[0] = 5;
+                st[1] = 5;
+                document.getElementById("kaidan").style.left = st[0] * 32 + "px";
+                document.getElementById("kaidan").style.top = st[1] * 32 + "px";
+                x = 3;
+                y = 5;
+                document.getElementById("player").style.left = x * 32 + "px";
+                document.getElementById("player").style.top = y * 32 + "px";
+                npc_i[0] = 3;
+                npc_i[1] = 2;
+                in_map(3,2,12);
+                document.getElementById("npc").style.left = npc_i[0] * 32 + "px";
+                document.getElementById("npc").style.top = npc_i[1] * 32 + "px";
+                in_map(6,2,13);
+                in_map(7,2,14);
+                }
+                document.getElementById("fc").innerHTML = floor_c + "階"
+
+            //in_map(Math.floor(Math.random()*7)+1) = 2
+            redraw()
+            }
+        function move(muki){
+            if (on_move == false && flag == 1){
+                in_map(x,y,0);
+                document.getElementById("player").style.left = x * 32 + "px";
+                document.getElementById("player").style.top = y * 32 + "px";
+                mm = muki;
+                if (muki == 0){
+                    document.getElementById("player").src = "m5.png";
+                }else if (muki == 1){
+                    document.getElementById("player").src = "m3.png";
+                }else if (muki == 2){
+                    document.getElementById("player").src = "m7.png";
+                }else if (muki == 3){
+                    document.getElementById("player").src = "m1.png";
+                }
+                if (muki == 0 && re_map(x - 1,y) == 0){
+                    document.getElementById("player").src = "m6.png";
+                    mm = muki;
+                    c = 0;
+                    x -= 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+                }else if (muki == 1 && re_map(x,y - 1) == 0){
+                    document.getElementById("player").src = "m4.png";
+                    mm = muki;
+                    c = 0;
+                    y -= 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+            
+                }else if (muki == 2 && re_map(x + 1,y) == 0){
+                    document.getElementById("player").src = "m8.png";
+                    mm = muki;
+                    c = 0;
+                    x += 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+                }else if (muki == 3 && re_map(x,y + 1) == 0){
+                    document.getElementById("player").src = "m2.png";
+                    mm = muki;
+                    c = 0;
+                    y += 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+            }
+        }
+
+
+        }
+        function ki_n(e){
+            var kikki = document.getElementById("key_hantei");
+            if (on_move == false && flag == 1 && kikki.checked){
+            if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40){
+            in_map(x,y,0);
+            document.getElementById("player").style.left = x * 32 + "px";
+                document.getElementById("player").style.top = y * 32 + "px";
+                
+                if (e.which == 37){
+                    muki = 0;
+                    mm = muki;
+                }else if(e.which == 38){
+                    muki = 1;
+                    mm = muki;
+                }else if(e.which == 39){
+                    muki = 2;
+                    mm = muki;
+                }else if(e.which == 40){
+                    muki = 3;
+                    mm = muki;
+                }
+
+                if (muki == 0){
+                    document.getElementById("player").src = "m5.png";
+                }else if (muki == 1){
+                    document.getElementById("player").src = "m3.png";
+                }else if (muki == 2){
+                    document.getElementById("player").src = "m7.png";
+                }else if (muki == 3){
+                    document.getElementById("player").src = "m1.png";
+                }
+                if (muki == 0 && re_map(x - 1,y) == 0){
+                    document.getElementById("player").src = "m6.png";
+                    c = 0;
+                    x -= 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+                }else if (muki == 1 && re_map(x,y - 1) == 0){
+                    document.getElementById("player").src = "m4.png";
+                    c = 0;
+                    y -= 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+            
+                }else if (muki == 2 && re_map(x + 1,y) == 0){
+                    document.getElementById("player").src = "m8.png";
+                    c = 0;
+                    x += 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+                }else if (muki == 3 && re_map(x,y + 1) == 0){
+                    document.getElementById("player").src = "m2.png";
+                    c = 0;
+                    y += 1;
+                    in_map(x,y,3);
+                    move_e();
+                    move_c();
+            }
+            }else if(e.which == 90){
+                kougeki();
+            }
+        }
+        }
+        function move_c(){
+            on_move = true;
+            c += 1;
+            if (mukou == false) {
+                if (mm == 0){
+                    document.getElementById("player").style.left = (x + 1) * 32 - c + "px";
+                    if (c == 10){
+                        document.getElementById("player").src = "m5.png";
+                    }else if (c == 20){
+                        document.getElementById("player").src = "m6.png";
+                    }else if (c == 32){
+                        document.getElementById("player").src = "m5.png";
+                            on_move = false;
+                    }
+                
+                }
+                if (mm == 1){
+                    document.getElementById("player").style.top = (y + 1) * 32 - c + "px";
+                    if (c == 10){
+                            document.getElementById("player").src = "m3.png";
+                    }else if (c == 20){
+                        document.getElementById("player").src = "m4.png";
+                    }else if (c == 32){
+                        document.getElementById("player").src = "m3.png";
+                        on_move = false;
+                    }
+                
+                }
+                if (mm == 2){
+                    document.getElementById("player").style.left = (x - 1) * 32 + c + "px";
+                if (c == 10){
+                    document.getElementById("player").src = "m7.png";
+                    }else if (c == 20){
+                        document.getElementById("player").src = "m8.png";
+                    }else if (c == 32){
+                        document.getElementById("player").src = "m7.png";
+                        on_move = false;
+                    }
+                
+                }
+
+                if (mm == 3){
+                    document.getElementById("player").style.top = (y - 1) * 32 + c + "px";
+                    if (c == 10){
+                        document.getElementById("player").src = "m1.png";
+                    }else if (c == 20){
+                        document.getElementById("player").src = "m2.png";
+                    }else if (c == 32){
+                        document.getElementById("player").src = "m1.png";
+                        on_move = false;
+                    }
+                   
+                }
+            }
+            if (e1[2] == 0){
+                document.getElementById("teki1").style.left = (e1[0] + 1) * 32 - c + "px";
+            }else if (e1[2] == 1){
+                document.getElementById("teki1").style.top = (e1[1] + 1) * 32 - c + "px";
+            }else if (e1[2] == 2){
+                document.getElementById("teki1").style.left = (e1[0] - 1) * 32 + c + "px";
+            }else if (e1[2] == 3){
+                document.getElementById("teki1").style.top = (e1[1] - 1) * 32 + c + "px";
+            }
+
+            if (e2[2] == 0){
+                document.getElementById("teki2").style.left = (e2[0] + 1) * 32 - c + "px";
+            }else if (e2[2] == 1){
+                document.getElementById("teki2").style.top = (e2[1] + 1) * 32 - c + "px";
+            }else if (e2[2] == 2){
+                document.getElementById("teki2").style.left = (e2[0] - 1) * 32 + c + "px";
+            }else if (e2[2] == 3){
+                document.getElementById("teki2").style.top = (e2[1] - 1) * 32 + c + "px";
+            }
+
+
+            if (c == 32){
+                c = 0;
+                on_move = false;
+                mukou = false;
+
+                if (e1[2] == 5){
+                    damage(10);
+
+                    
+                    if (hp < 1){
+                        document.getElementById("player").src = "down.png";
+                        msg_q = msg_q + "倒されてしまった<br>スコア:" + score + "<br><button onclick='init()'>リトライ</button>";
+                        var tmp;
+                        tmp = Math.floor(score/1000);
+                        hosikuzu += tmp;
+                        flag = 0;
+                    }
+                }
+                if (e2[2] == 5){
+                    damage(10);
+
+                    
+                    if (hp < 1){
+                        document.getElementById("player").src = "down.png";
+                        msg_q = msg_q + "倒されてしまった<br>スコア:" + score + "<br><button onclick='init()'>リトライ</button>";
+                        var tmp;
+                        tmp = Math.floor(score/1000);
+                        hosikuzu += tmp;
+                        flag = 0;
+                    }
+                }
+                if (x == st[0] && y == st[1]){
+                    init();
+                }
+                document.getElementById("hp_i").innerHTML = "たいりょく:" + hp + "/" + max_hp;
+                document.getElementById("msg").innerHTML = msg_q;
+                msg_q = "";
+            }else{
+                setTimeout(move_c,10);
+            }
+
+
+            
+        }
+        function move_e(){
+            if (e1[3] > 0){
+                in_map(e1[0],e1[1],0);
+                document.getElementById("teki1").style.left = e1[0] * 32 + "px";
+                document.getElementById("teki1").style.top = e1[1] * 32 + "px";
+                if (x > e1[0] && re_map(e1[0] + 1,e1[1]) == 0){
+                    e1[0] += 1;
+                    e1[2] = 2;
+                }else if (x < e1[0] && re_map(e1[0] - 1,e1[1]) == 0){
+                    e1[0] -= 1;
+                    e1[2] = 0;
+                }else if (y > e1[1] && re_map(e1[0],e1[1] + 1) == 0){
+                    e1[1] += 1;
+                    e1[2] = 3;
+                }else if (y < e1[1] && re_map(e1[0],e1[1] - 1) == 0){
+                    e1[1] -= 1;
+                    e1[2] = 1;
+                }else if (y + 1 == e1[1] || y - 1 == e1[1] ){
+                    if (x == e1[0]){
+                     e1[2] = 5;
+                    }
+                }else if (x + 1 == e1[0] || x - 1 == e1[0] ){
+                    if (y == e1[1]){
+                        e1[2] = 5;
+                    }    
+                }else{
+                        e1[2] = 4;
+                }
+            }else{
+                if (e1[4] == 1){
+                    msg_q = msg_q + "敵を倒した<br>";
+                    score = score + 50;
+                    document.getElementById("score_i").innerHTML = "スコア:" + score;
+                }
+                e1[2] = 4;
+                e1[4] = 0;
+                in_map(e1[0],e1[1],0);
+                e1[0] = -4;
+                e1[1] = -4;
+                
+                document.getElementById("teki1").style.left = -96 + "px";
+                document.getElementById("teki1").style.top = -96 + "px";
+            }
+            //alert(e1[2]);
+            in_map(e1[0],e1[1],5);
+
+            if (e2[3] > 0){
+                
+                in_map(e2[0],e2[1],0);
+                document.getElementById("teki2").style.left = e2[0] * 32 + "px";
+                document.getElementById("teki2").style.top = e2[1] * 32 + "px";
+                //X特殊AI追加しとく
+                if (x > e2[0] && re_map(e2[0] + 1,e2[1]) == 0){
+                    e2[0] += 1;
+                    e2[2] = 2;
+                }else if (x < e2[0] && re_map(e2[0] - 1,e2[1]) == 0){
+                    e2[0] -= 1;
+                    e2[2] = 0;
+                }else if (y > e2[1] && re_map(e2[0],e2[1] + 1) == 0){
+                    e2[1] += 1;
+                    e2[2] = 3;
+                }else if (y < e2[1] && re_map(e2[0],e2[1] - 1) == 0){
+                    e2[1] -= 1;
+                    e2[2] = 1;
+                }else if (y + 1 == e2[1] || y - 1 == e2[1] ){
+                    if (x == e2[0]){
+                     e2[2] = 5;
+                    }
+                }else if (x + 1 == e2[0] || x - 1 == e2[0] ){
+                    if (y == e2[1]){
+                        e2[2] = 5;
+                    }    
+                }else{
+                        e2[2] = 4;
+                }
+            }else{
+                if (e2[4] == 1){
+                    msg_q = msg_q + "敵を倒した<br>";
+                    score = score + 50;
+                    document.getElementById("score_i").innerHTML = "スコア:" + score;
+                }
+                e2[2] = 4;
+                e2[4] = 0;
+                in_map(e2[0],e2[1],0);
+                e2[0] = -4;
+                e2[1] = -4;
+                
+                document.getElementById("teki2").style.left = -96 + "px";
+                document.getElementById("teki2").style.top = -96 + "px";
+            }
+            //alert(e2[2]);
+            in_map(e2[0],e2[1],6);
+        }
+        function kougeki(){
+        if (on_move == false && flag == 1){
+            in_map(x,y,3);
+            //alert(mm);
+            if (mm == 0){
+                if (re_map(x - 1,y) == 2){
+                    in_map(x - 1,y,4);
+                    root_item();
+                    
+                }
+                tmp = re_map(x - 1,y);
+            }else if (mm == 1){
+                if (re_map(x,y - 1) == 2){
+                    in_map(x,y - 1,4);
+                    root_item();
+                }
+                tmp = re_map(x,y-1);
+            }else if (mm == 2){
+                if (re_map(x + 1,y) == 2){
+                    in_map(x + 1,y,4);
+                    root_item();
+                }
+                tmp = re_map(x + 1,y);
+            }else if (mm == 3){
+                if (re_map(x,y + 1) == 2){
+                    in_map(x,y + 1,4);
+                    root_item();
+
+                }
+                tmp = re_map(x,y + 1);
+            }
+            if (tmp == 12){
+                //msg_q = msg_q + "まだ実装中だからちょっと待ってね<br>";
+                msg_q = msg_q + "特殊効果をほしくずで作れるよ<br>";
+                msg_q = msg_q + "<button style='width: 200px;' onclick='kouka_h(1)'>宝箱出現率増加 <img src='star.png'>x4</button><br>";
+                msg_q = msg_q + "<button style='width: 200px;'>スライムだけ <img src='star.png'>x4</button><br>";
+                msg_q = msg_q + "<button style='width: 200px;'>きつねの呪い <img src='star.png'>x3</button><br>";
+                msg_q = msg_q + "<button style='width: 200px;'>奇跡の力 <img src='star.png'>x6</button><br>";
+            }else if(tmp == 13){
+                //msg_q = msg_q + "更新履歴9/25<br>スタート時に地上からスタートするように<br>アイテムの説明追加<br>10/5<br>杖&盾の追加<br>10/9<br>武器と盾が機能するように<br>テスト一般公開";
+                msg_q = msg_q + "バージョン:0.3 2021/11/06<br><a href='https://3shokudango.web.fc2.com/cana_dungeon/setumei.html'>あそびかたと更新履歴はここをクリックしてね</a>"
+            }else if(tmp == 14){
+                msg_q = msg_q + "Code by jyujyun(3shokudango)<br>Image by jyujyun(3shokudango)"
+            }else if (tmp == 5){
+                e1[3] -= power();
+            }else if (tmp == 6){
+                e2[3] -= power();
+            }
+            if (ken == 32){
+                if (mm == 0){
+                    if (re_map(x - 1,y) == 4 || re_map(x - 1,y) == 1){
+                        in_map(x - 1,y,0);
+                        redraw()
+                    
+                   }
+                    //tmp = re_map(x - 1,y);
+                }else if (mm == 1){
+                    if (re_map(x,y - 1) == 4 || re_map(x,y - 1) == 1){
+                        in_map(x,y - 1,0);
+                        redraw()
+                }
+                  //tmp = re_map(x,y-1);
+                }else if (mm == 2){
+                    if (re_map(x + 1,y) == 4 || re_map(x + 1,y) == 1){
+                    in_map(x + 1,y,0);
+                    redraw()
+                    }
+                    //tmp = re_map(x + 1,y);
+                }else if (mm == 3){
+                    if (re_map(x,y + 1) == 4 || re_map(x,y + 1) == 1){
+                        in_map(x,y + 1,0);
+                        redraw()
+                }
+                
+                //tmp = re_map(x,y + 1);
+            }                
+            }
+            /*
+            if (mm == 0 && x - 1 == e1[0] && y == e1[1]){
+                e1[3] -= power();
+            }else if (mm == 1 && y - 1 == e1[1] && x == e1[0]){
+                e1[3] -= power();
+            }else if (mm == 2 && y == e1[1] && x + 1 == e1[0]){
+                e1[3] -= power();
+            }else if (mm == 3 && y + 1 == e1[1] && x == e1[0]){
+                e1[3] -= power();
+            }*/
+            c = 0;
+            move_e();
+            //document.getElementById("msg").innerHTML = "ターン送り"
+            mukou = true;
+            
+            move_c();
+            
+            }
+        }
+        function kouka_h(t){
+            if (t == 1 && hosikuzu >= 4){
+                hosikuzu -= 4;
+                kouka = t;
+                redraw();
+            }
+        }
+
+        function redraw(){
+            /*
+            if (item[0] == 1){
+                i1.src = "rod.png";
+            }if (item[1] == 1){
+                i2.src = "rod.png";
+            }if (item[2] == 1){
+                i3.src = "rod.png";
+            }if (item[3] == 1){
+                i4.src = "rod.png";
+            }if (item[4] == 1){
+                i5.src = "rod.png";
+            }if (item[5] == 1){
+                i6.src = "rod.png";
+            }if (item[6] == 1){
+                i7.src = "rod.png";
+            }if (item[7] == 1){
+                i8.src = "rod.png";
+            }
+            */
+            document.getElementById("hosi").innerHTML = "<img src='star.png'>x" + hosikuzu;
+            document.getElementById("i1").src = re_item(item[0]);
+            document.getElementById("i2").src = re_item(item[1]);
+            document.getElementById("i3").src = re_item(item[2]);
+            document.getElementById("i4").src = re_item(item[3]);
+            document.getElementById("i5").src = re_item(item[4]);
+            document.getElementById("i6").src = re_item(item[5]);
+            document.getElementById("i7").src = re_item(item[6]);
+            document.getElementById("i8").src = re_item(item[7]);
+            document.getElementById("ken_img").src = re_item(ken);
+            document.getElementById("tate_img").src = re_item(tate);
+            document.getElementById("ryouiki").innerHTML = "";
+            if (kouka == 1){
+                document.getElementById("kouka_img").src = "box.png";
+            }else{
+                document.getElementById("kouka_img").src = "";
+            }
+            for (i = 0;i<10; i++) {
+                for (j = 0;j<10; j++) {
+                    tmp = 0;
+                    if (re_map(j,i) == 0){
+                        tmp = "<img src='yuka.png'>";
+                    }else if(re_map(j,i) == 2){
+                        tmp = "<img src='box.png'>"
+                    }else if(re_map(j,i) == 4){
+                        tmp = "<img src='box_open.png'>"
+                    }else if(re_map(j,i) == 5 || re_map(j,i) == 6){
+                        tmp = "<img src='yuka.png'>";
+                    }else if(re_map(j,i) == 3){
+                        tmp = "<img src='yuka.png'>";
+                    }else if(re_map(j,i) == 12){
+                        tmp = "<img src='yuka.png'>";
+                    }else if(re_map(j,i) == 13){
+                        tmp = "<img src='kanban.png'>";
+                    }else if(re_map(j,i) == 14){
+                        tmp = "<img src='kanban.png'>";
+                    }else if (re_map(j,i) == 1){
+                        if (i == 9){
+                            tmp = "<img src='kabe_yoko.png'>";
+                        }else{
+                            if (re_map(j,i+1) == 0){
+                                tmp = "<img src='kabe_yoko.png'>";        
+                            }else if (re_map(j,i+1) == 1){
+                                tmp = "<img src='kabe.png'>";
+                            }else{
+                                tmp = "<img src='kabe_yoko.png'>";
+                            }
+
+                        }
+                        
+                    }
+                    document.getElementById("ryouiki").innerHTML += tmp
+                }   
+                document.getElementById("ryouiki").innerHTML += "<br>"
+            }
+        }
+        function re_item(i){
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5){
+                return "rod.png";
+            }else if (i == 6 || i == 7 || i == 8 || i == 9 || i == 10){
+                return "shield.png";
+            }else if (i == 11 || i == 12 || i == 13 || i == 14){
+                return "powder.png";
+            }else if(i == 32){
+                return "hanma.png"
+            }
+            else{
+                return "";
+            }
+        }
+        function root_item(){
+            var tmp;
+            tmp = Math.floor(Math.random() * 10);
+            if (in_item(0) == true){
+                if (tmp == 0 || tmp == 1 || tmp == 2 || tmp == 7){
+                    score += 100;
+                    msg_q = msg_q + "+100スコア";
+                    document.getElementById("score_i").innerHTML = "スコア:" + score;
+                }else if(tmp == 5 || tmp == 6){
+                    var tmp2 = Math.floor(Math.random() * 16);
+                    if (tmp2 <= 12){
+                        in_item(11);
+                        msg_q = msg_q + "かいふくのこなをてにいれた<br>";
+                    }else if (tmp2 == 13){
+                        in_item(13);
+                        msg_q = msg_q + "ぶききょうかのこなをてにいれた<br>";
+                    }else if (tmp2 == 14){
+                        in_item(14);
+                        msg_q = msg_q + "たてきょうかのこなをてにいれた<br>";
+                    }else if (tmp2 == 15){
+                        in_item(32);
+                        msg_q = msg_q + "ハンマーをてにいれた<br>";
+                    }
+                }else if (tmp == 8 || tmp == 4){
+                    var tmp2 = Math.floor(Math.random() * 11);
+                    if (tmp2 == 0 || tmp2 == 1 || tmp2 == 3 || tmp2 == 4 || tmp2 == 10){
+                        in_item(1);
+                        msg_q = msg_q + "きのロッドをてにいれた<br>";
+                    }else if(tmp2 == 5 || tmp2 == 6 || tmp2 == 7){
+                        in_item(2);
+                        msg_q = msg_q + "どうのロッドをてにいれた<br>";                      
+                    }else if(tmp2 == 8){
+                        in_item(3);
+                        msg_q = msg_q + "ぎんのロッドをてにいれた<br>";
+                    }else if(tmp2 == 9){
+                        in_item(4);
+                        msg_q = msg_q + "こんごうせきロッドをてにいれた<br>";                        
+                        
+                    }
+
+                }else if (tmp == 9 || tmp == 3){
+                    var tmp2 = Math.floor(Math.random() * 11);
+                    if (tmp2 == 0 || tmp2 == 1 || tmp2 == 3 || tmp2 == 4 || tmp2 == 10){
+                        in_item(6);
+                        msg_q = msg_q + "ウッドシールドをてにいれた<br>";
+                    }else if(tmp2 == 5 || tmp2 == 6 || tmp2 == 7){
+                        in_item(7);
+                        msg_q = msg_q + "カッパーシールドをてにいれた<br>";                      
+                    }else if(tmp2 == 8){
+                        in_item(8);
+                        msg_q = msg_q + "シルバーシールドをてにいれた<br>";
+                    }else if(tmp2 == 9){
+                        in_item(9);
+                        msg_q = msg_q + "ミスリルシールドをてにいれた<br>";                        
+                        
+                    }
+
+                }
+
+                
+            }else{
+                msg_q = msg_q + "もちものがいっぱいだよ<br>";
+            }
+            redraw();
+        }
+        function power(){
+            var tmp2 = 0;
+            if (ken == 1){
+                tmp2 = 0.2;
+            }else if(ken == 2 || ken == 32){
+                tmp2 = 0.4;
+            }else if(ken == 3){
+                tmp2 = 0.8;
+            }else if(ken == 4){
+                tmp2 = 1.2;
+            }else if(ken == 5){
+                tmp2 = 2;
+            }else{
+                tmp2 = 0
+            }
+            tmp = 10 + Math.floor(Math.random() * 6) - 3;
+            tmp = tmp + tmp2 * tmp;
+            tmp = Math.floor(tmp);
+            msg_q = msg_q + tmp + "ダメージを与えた<br>";
+            return tmp;
+        }
+        function select_item(i_num){
+            //alert(i_num);
+            if (i_num < 20){
+                tmp = item[i_num];
+                item_f = i_num;
+            }else if (i_num == 32){
+                tmp = ken;
+            }else if (i_num == 33){
+                tmp = tate;
+            }
+
+            if (tmp == 11){
+                document.getElementById("item_d").innerHTML = "かいふくのこな<br>10HPかいふく<br>"
+            }else if(tmp == 1){
+                document.getElementById("item_d").innerHTML = "きのロッド<br>1 こうげきりょく<br>よいもくざいをつかってる"
+            }else if(tmp == 2){
+                document.getElementById("item_d").innerHTML = "どうのロッド<br>2 こうげきりょく<br>ふつうのどうでできている"
+            }else if(tmp == 3){
+                document.getElementById("item_d").innerHTML = "ぎんのロッド<br>4 こうげきりょく<br>ぴかぴかのぎんでできている"
+            }else if(tmp == 4){
+                document.getElementById("item_d").innerHTML = "こんごうせきロッド<br>6 こうげきりょく<br>こうかなダイヤモンドをつかっている"
+            }else if(tmp == 5){
+                document.getElementById("item_d").innerHTML = "きんのロッド<br>10 こうげきりょく<br>でんせつのきんでできている"
+            }else if(tmp == 6){
+                document.getElementById("item_d").innerHTML = "ウッドシールド<br>1 ぼうぎょりょく<br>きのあたたかみがある"
+            }else if(tmp == 7){
+                document.getElementById("item_d").innerHTML = "カッパーシールド<br>2 ぼうぎょりょく<br>どういろにかがやいている"
+            }else if(tmp == 8){
+                document.getElementById("item_d").innerHTML = "シルバーシールド<br>4 ぼうぎょりょく<br>なかなかこうかなぎんがつかわれている"
+            }else if(tmp == 9){
+                document.getElementById("item_d").innerHTML = "ミスリルシールド<br>6 ぼうぎょりょく<br>げんじつにはそんざいしないよ"
+            }else if(tmp == 10){
+                document.getElementById("item_d").innerHTML = "ゴールドシールド<br>8 ぼうぎょりょく<br>すごくかがやいている"
+            }else if(tmp == 13){
+                document.getElementById("item_d").innerHTML = "ぶききょうかのこな<br>ぶきのそざいを1だんかいアップグレードする"
+            }else if(tmp == 14){
+                document.getElementById("item_d").innerHTML = "たてきょうかのこな<br>たてのそざいを1だんかいアップグレードする"
+            }else if(tmp == 32){
+                document.getElementById("item_d").innerHTML = "ハンマー<br>2こうげきりょく<br>かべとたからばこをこわせる"
+            }
+        }
+        function use_item(){
+            if (flag == 1){
+                tmp = item[item_f];
+                if (tmp > 0){
+                    if (tmp == 11){
+                        msg_q = msg_q + "かいふくのこなをつかった<br>";
+                        msg_q = msg_q + "10HPかいふくした<br>";
+                        hp = hp + 10;
+                        if (hp >= max_hp){
+                            hp = max_hp;
+                        }
+                        document.getElementById("hp_i").innerHTML = "たいりょく:" + hp + "/" + max_hp;
+                        item[item_f] = 0;
+                    }else if(tmp == 1 || tmp == 2 || tmp == 3 || tmp == 4 || tmp == 5 || tmp == 32){
+                        var tmp_k = ken;
+                        ken = tmp;
+                        item[item_f] = tmp_k;
+                    }else if(tmp == 6 || tmp == 7 || tmp == 8 || tmp == 9 || tmp == 10){
+                        var tmp_k = tate;
+                        tate = tmp;
+                        item[item_f] = tmp_k;                        
+                    }else if(tmp == 13){
+                        msg_q = msg_q + "ぶききょうかのこなをつかった<br>";
+                        item[item_f] = 0;
+                        if (ken == 0){
+                            
+                            msg_q = msg_q + "しかし、なにもおきなかった<br>";
+                        }else{
+                            if (ken < 5){
+                                ken = ken + 1;
+                                msg_q = msg_q + "ぶきがアップグレードされた<br>";
+                            }else{
+                                msg_q = msg_q + "これいじょうアップグレードできない<br>";
+                            }
+                        }
+                    }else if(tmp == 14){
+                        msg_q = msg_q + "たてきょうかのこなをつかった<br>";
+                        item[item_f] = 0;
+                        if (tate == 0){
+                            
+                            msg_q = msg_q + "しかし、なにもおきなかった<br>";
+                            
+                        }else{
+                            if (tate > 5 && tate < 10){
+                                tate = tate + 1;
+                                msg_q = msg_q + "たてがアップグレードされた<br>";
+                            }else{
+                                msg_q = msg_q + "これいじょうアップグレードできない<br>";
+                            }
+                        }
+                    }
+                    //item[item_f] = 0;
+                    item_f = 64;
+                    document.getElementById("item_d").innerHTML = "アイテムを選んでください";
+                    redraw();
+                    c = 0;
+                    move_e();
+                    //document.getElementById("msg").innerHTML = "ターン送り"
+                    mukou = true;
+                    move_c();
+                }
+            }
+        }
+        function damage(syoki){
+            syoki = syoki + Math.floor(floor_c / 2);
+            tmp = syoki + Math.floor(Math.random() * 6) - 3;
+            
+            var tmp2 = 0;
+            if (tate == 6){
+                tmp2 = 0.1;
+            }else if(tate == 7){
+                tmp2 = 0.2;
+            }else if(tate == 8){
+                tmp2 = 0.4;
+            }else if(tate == 9){
+                tmp2 = 0.6;
+            }else if(tate == 10){
+                tmp2 = 0.8;
+            }else{
+                tmp2 = 0
+            }
+            tmp = tmp - tmp2 * tmp;
+            if (tmp <= 1){
+                tmp = 1
+            }
+            tmp = Math.floor(tmp);
+            
+            
+            
+            msg_q = msg_q + tmp + "ダメージ受けた<br>";
+
+
+
+            hp -= tmp;
+        }
+        function delete_item(){
+            if (flag == 1){
+                item[item_f] = 0;
+                document.getElementById("item_d").innerHTML = "アイテムを選んでください";
+                redraw();
+                c = 0;
+                move_e();
+                //document.getElementById("msg").innerHTML = "ターン送り"
+                mukou = true;
+                item_f = 64;
+                move_c();
+            }
+            
+        }
+        function in_item(i_num){
+            if (item[0] == 0){
+                item[0] = i_num;
+                return true;
+            }else if (item[1] == 0){
+                item[1] = i_num;
+                return true;
+            }else if (item[2] == 0){
+                item[2] = i_num;
+                return true;
+            }else if (item[3] == 0){
+                item[3] = i_num;
+                return true;
+            }else if (item[4] == 0){
+                item[4] = i_num;
+                return true;
+            }else if (item[5] == 0){
+                item[5] = i_num;
+                return true;
+            }else if (item[6] == 0){
+                item[6] = i_num;
+                return true;
+            }else if (item[7] == 0){
+                item[7] = i_num;
+                return true;
+            }else{
+                return false;
+            }
+        }
+        function in_map(t1,t2,t){
+            if (t2 == 0){
+			    map0[t1] = t
+		    }else if (t2 == 1){
+			    map1[t1] = t
+    		}else if (t2 == 2){
+	    		map2[t1] = t
+		    }else if (t2 == 3){
+			    map3[t1] = t
+    		}else if (t2 == 4){
+	    		map4[t1] = t
+		    }else if (t2 == 5){
+			    map5[t1] = t
+		    }else if (t2 == 6){
+			    map6[t1] = t
+		    }else if (t2 == 7){
+			    map7[t1] = t
+		    }else if (t2 == 8){
+			    map8[t1] = t
+		    }else if (t2 == 9){
+			    map9[t1] = t
+		    }
+        }
+        
+        function re_map(t1,t2){
+            if (t2 == 0){
+			    return map0[t1]
+		    }else if (t2 == 1){
+			    return map1[t1]
+    		}else if (t2 == 2){
+	    		return map2[t1]
+		    }else if (t2 == 3){
+			    return map3[t1]
+    		}else if (t2 == 4){
+	    		return map4[t1]
+		    }else if (t2 == 5){
+			    return map5[t1]
+    		}else if (t2 == 6){
+	    		return map6[t1]
+		    }else if (t2 == 7){
+			    return map7[t1]
+		    }else if (t2 == 8){
+			    return map8[t1]
+		    }else if (t2 == 9){
+			    return map9[t1]
+		}
+        }
+    </script>
+</html>

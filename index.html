@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -10,12 +11,25 @@
         </style>
     </head>
     <body onload="init()" onkeydown="ki_n(event)">
+        <div hidden>
+        <img src="m1.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m2.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m3.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m4.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m5.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m6.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m7.png" style="position:absolute;left:0px;top:0px;">
+        <img src="m8.png" style="position:absolute;left:0px;top:0px;">
+        </div>
         <div class="tiles" id="ryouiki" style="position:absolute;left:0px;top:0px;"></div>
         <img src="kaidan.png" id="kaidan" style="position:absolute;left:32px;top:32px;">
         <img src="fox.png" id="teki1" style="position:absolute;left:32px;top:32px;">
         <img src="slime.png" id="teki2" style="position:absolute;left:32px;top:32px;">
+
         <img src="m1.png" id="player" style="position:absolute;left:32px;top:32px;">
         <img src="serruria.png" id="npc" style="position:absolute;left:0px;top:0px;">
+        <img src="princess.png" id="npc2" style="position:absolute;left:0px;top:0px;">
+        
         <div id="ui" style="position:absolute;left:332px;top:0px;">
         そうび<br>
         <table border="1">
@@ -40,7 +54,15 @@
         <tr><td></td><td><button onclick="move(3)">↓</button></td><td></td></tr>
         </table></div>
         <div style="position:absolute;left:100px;top:332px;" id="msg">わお</div>
-    </body>
+    <script type="text/javascript"><!--
+var fc2footerparam = 'charset=' + encodeURIComponent(document.charset ? document.charset : document.characterSet) + '&url=' + encodeURIComponent(document.location) + '&service=0&r=' + Math.floor(Math.random()*99999999999);
+var fc2footertag = '<' + 'script src="//vip.chps-api.fc2.com/apis/footer/?' + fc2footerparam + '" charset="UTF-8"><' + '/script>';
+document.write(fc2footertag);
+//--></script>
+<!-- FC2, inc.-->
+<img src="//media.fc2.com/counter_img.php?id=50" style="visibility:hidden" alt="inserted by FC2 system" width="0" height="0">
+<!-- FC2, inc.-->
+</body>
     <script>
         //かなダンジョン by jyujyun
         //0 ゆか
@@ -51,9 +73,10 @@
         //3 プレイヤー
         //6 てき2
         //7 てき3
-        //12 NPC
+        //12 魔術師
         //13 かんばん
         //14 権利情報
+        //15 姫
         var x = 1;
         var y = 1;
         var c = 0;
@@ -84,6 +107,7 @@
         var ken;
         var tate;
         var npc_i = new Array(3);
+        var npc2_i = new Array(3);
         var hosikuzu;
         var kouka;
         kouka = 0;
@@ -157,6 +181,10 @@
             npc_i[1] = -4;
             document.getElementById("npc").style.left = npc_i[0] * 32 + "px";
             document.getElementById("npc").style.top = npc_i[1] * 32 + "px";
+            npc2_i[0] = -5;
+            npc2_i[1] = -5;
+            document.getElementById("npc2").style.left = npc2_i[0] * 32 + "px";
+            document.getElementById("npc2").style.top = npc2_i[1] * 32 + "px";
             var tmp;
             tmp = Math.floor(Math.random() * 4);
             if (tmp == 0){
@@ -242,6 +270,11 @@
                 in_map(3,2,12);
                 document.getElementById("npc").style.left = npc_i[0] * 32 + "px";
                 document.getElementById("npc").style.top = npc_i[1] * 32 + "px";
+                npc2_i[0] = 1;
+                npc2_i[1] = 8;
+                in_map(1,8,15);
+                document.getElementById("npc2").style.left = npc2_i[0] * 32 + "px";
+                document.getElementById("npc2").style.top = npc2_i[1] * 32 - 4 + "px";
                 in_map(6,2,13);
                 in_map(7,2,14);
                 }
@@ -621,9 +654,11 @@
                 msg_q = msg_q + "<button style='width: 200px;'>奇跡の力 <img src='star.png'>x6</button><br>";
             }else if(tmp == 13){
                 //msg_q = msg_q + "更新履歴9/25<br>スタート時に地上からスタートするように<br>アイテムの説明追加<br>10/5<br>杖&盾の追加<br>10/9<br>武器と盾が機能するように<br>テスト一般公開";
-                msg_q = msg_q + "バージョン:0.3 2021/4/10<br><a href='https://3shokudango.web.fc2.com/cana_dungeon/setumei.html'>あそびかたと更新履歴はここをクリックしてね</a>"
+                msg_q = msg_q + "バージョン:0.3.1 2023/12/9<br><a href='https://3shokudango.web.fc2.com/cana_dungeon/setumei.html'>あそびかたと更新履歴はここをクリックしてね</a>"
             }else if(tmp == 14){
-                msg_q = msg_q + "Code by jyujyun(3shokudango)<br>Image by jyujyun(3shokudango)<br>(c)2021-2022 jyujyun"
+                msg_q = msg_q + "Game by jyujyun<br>(c)2021-2023 jyujyun"
+            }else if(tmp == 15){
+                msg_q = msg_q + "だんごのページに戻りますか? <a href ='https://3shokudango.web.fc2.com'>戻る</a>";
             }else if (tmp == 5){
                 e1[3] -= power();
             }else if (tmp == 6){
@@ -735,7 +770,7 @@
                         tmp = "<img src='yuka.png'>";
                     }else if(re_map(j,i) == 3){
                         tmp = "<img src='yuka.png'>";
-                    }else if(re_map(j,i) == 12){
+                    }else if(re_map(j,i) == 12 || re_map(j,i) == 15){
                         tmp = "<img src='yuka.png'>";
                     }else if(re_map(j,i) == 13){
                         tmp = "<img src='kanban.png'>";
